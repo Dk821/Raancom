@@ -1,0 +1,273 @@
+/**
+ * Raancom Light Theme Stylesheet
+ * 
+ * Defines the complete design system tokens, color palettes,
+ * elevations, component styles, and contrast rules for Raancom Light Mode.
+ *
+ * Usage:
+ *   - Auto-loaded via @import in frontend/src/styles.css
+ *   - Can be explicitly enforced via <html data-theme="light"> or class="theme-light"
+ *   - Can be imported standalone into any component or layout
+ */
+
+:root,
+[data-theme='light'],
+.theme-light {
+  /* ==========================================================================
+     Canvas & Surfaces
+     ========================================================================== */
+  --bg: #f4f6f8;            /* Main page background: cool soft neutral grey */
+  --surface: #ffffff;       /* Primary surface: pure white for cards, modals, topbar */
+  --surface-2: #f8fafb;     /* Secondary surface: subtle tint for table headers, pre, hover */
+  --border: #e2e8ee;        /* Structural borders: dividers, card outlines, inputs */
+  --border-focus: #0f766e;  /* Focus outline border */
+
+  /* ==========================================================================
+     Typography & Text Hierarchy
+     ========================================================================== */
+  --text: #16212b;          /* Primary body text: deep slate navy (WCAG AAA contrast) */
+  --text-secondary: #334155;/* Secondary text: darker slate for subheaders */
+  --muted: #5d6b79;         /* Muted text: descriptions, hints, table headers */
+
+  /* ==========================================================================
+     Brand / Primary Colors (Deep Emerald Teal)
+     ========================================================================== */
+  --primary: #0f766e;       /* Primary brand teal (Teal-700) */
+  --primary-hover: #0b5f59; /* Hover state for primary buttons and actions */
+  --primary-active: #042f2e;/* Active / pressed state */
+  --primary-soft: #dff4f1;  /* Soft tint for badges, active states, unread items */
+  --primary-contrast: #ffffff; /* High contrast text for primary buttons */
+
+  /* ==========================================================================
+     Semantic Status Colors
+     ========================================================================== */
+  /* Danger / Errors / Flagged / Rejections */
+  --danger: #b42318;        /* Error & negative status text/accent (Red-700) */
+  --danger-hover: #991b1b;  /* Darker red on hover */
+  --danger-soft: #fde8e6;   /* Soft red background for alerts and bad badges */
+
+  /* Warning / Cautions / Pending / Returned */
+  --warn: #a15c07;          /* Warning & pending status text/accent (Amber-700) */
+  --warn-hover: #854d0e;    /* Darker amber on hover */
+  --warn-soft: #fdf1d8;     /* Soft warm amber background for warning badges */
+
+  /* Success / OK / Approved / Inside Office */
+  --ok: #166534;            /* Success & approved text/accent (Green-800) */
+  --ok-hover: #14532d;      /* Darker green on hover */
+  --ok-soft: #dcf5e4;       /* Soft green background for success badges/alerts */
+
+  /* Information / Reviews / Checked In */
+  --info: #1d4ed8;          /* Info blue text/accent (Blue-700) */
+  --info-hover: #1e40af;    /* Darker blue on hover */
+  --info-soft: #e3ecfd;     /* Soft blue background for info badges/chips */
+
+  /* ==========================================================================
+     Elevations & Drop Shadows
+     ========================================================================== */
+  --shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.05);
+  --shadow: 0 1px 2px rgba(16, 24, 40, 0.06), 0 1px 3px rgba(16, 24, 40, 0.08);
+  --shadow-md: 0 4px 6px -1px rgba(16, 24, 40, 0.1), 0 2px 4px -2px rgba(16, 24, 40, 0.06);
+  --shadow-lg: 0 12px 32px rgba(16, 24, 40, 0.12);
+  --shadow-modal: 0 20px 50px rgba(16, 24, 40, 0.25);
+
+  /* ==========================================================================
+     Geometry & Typography
+     ========================================================================== */
+  --radius-sm: 6px;
+  --radius: 10px;
+  --radius-lg: 12px;
+  --radius-full: 9999px;
+  --font: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+
+  /* ==========================================================================
+     Sidebar & Navigation (Light Mode)
+     ========================================================================== */
+  --sidebar: #ffffff;                 /* Clean white sidebar surface */
+  --sidebar-surface: #f8fafb;         /* Slightly elevated sidebar card */
+  --sidebar-border: #e2e8ee;          /* Divider between sidebar and canvas */
+  --sidebar-text: #475569;            /* Slate-600 navigation typography */
+  --sidebar-text-muted: #64748b;      /* Section header text */
+  --sidebar-hover-bg: #f1f5f9;        /* Soft hover slate-100 */
+  --sidebar-hover-text: #0f172a;      /* Slate-900 on hover */
+  --sidebar-active-bg: #dff4f1;       /* Soft brand teal tint */
+  --sidebar-active-text: #0f766e;     /* Primary brand teal for active link */
+  --brand-text: #16212b;              /* Dark brand text */
+
+  /* ==========================================================================
+     Form Elements & Inputs
+     ========================================================================== */
+  --input-bg: #ffffff;
+  --input-border: #e2e8ee;
+  --input-text: #16212b;
+  --input-placeholder: #94a3b8;
+
+  /* ==========================================================================
+     Miscellaneous & Overlays
+     ========================================================================== */
+  --scrollbar-thumb: #cbd5e1;
+  --scrollbar-thumb-hover: #94a3b8;
+  --backdrop: rgba(8, 15, 22, 0.55);
+}
+
+/* ==========================================================================
+   Light Theme Explicit Component Contrast Rules
+   Ensures crystal-clear contrast and crisp borders under Light Mode
+   ========================================================================== */
+
+/* Primary Button Text Contrast */
+:root .btn.primary,
+[data-theme='light'] .btn.primary,
+.theme-light .btn.primary {
+  color: #ffffff;
+}
+
+:root .btn.primary:hover:not(:disabled),
+[data-theme='light'] .btn.primary:hover:not(:disabled),
+.theme-light .btn.primary:hover:not(:disabled) {
+  color: #ffffff;
+}
+
+/* Light Theme Card Borders and Elevation */
+[data-theme='light'] .card,
+.theme-light .card {
+  background: var(--surface);
+  border-color: var(--border);
+  box-shadow: var(--shadow);
+}
+
+/* Light Theme Form Controls */
+[data-theme='light'] input[type='text'],
+[data-theme='light'] input[type='email'],
+[data-theme='light'] input[type='password'],
+[data-theme='light'] input[type='date'],
+[data-theme='light'] input[type='time'],
+[data-theme='light'] input[type='number'],
+[data-theme='light'] input[type='search'],
+[data-theme='light'] input[type='datetime-local'],
+[data-theme='light'] select,
+[data-theme='light'] textarea,
+.theme-light input[type='text'],
+.theme-light input[type='email'],
+.theme-light input[type='password'],
+.theme-light input[type='date'],
+.theme-light input[type='time'],
+.theme-light input[type='number'],
+.theme-light input[type='search'],
+.theme-light input[type='datetime-local'],
+.theme-light select,
+.theme-light textarea {
+  background: var(--surface);
+  border-color: var(--border);
+  color: var(--text);
+}
+
+/* Light Theme Data Tables */
+[data-theme='light'] th,
+.theme-light th {
+  background: var(--surface-2);
+  color: var(--muted);
+  border-bottom-color: var(--border);
+}
+
+[data-theme='light'] td,
+.theme-light td {
+  border-bottom-color: var(--border);
+}
+
+[data-theme='light'] tbody tr.click:hover,
+.theme-light tbody tr.click:hover {
+  background: var(--surface-2);
+}
+
+/* Light Theme Modals */
+[data-theme='light'] .modal,
+.theme-light .modal {
+  background: var(--surface);
+}
+
+[data-theme='light'] .modal-head,
+.theme-light .modal-head {
+  background: var(--surface);
+  border-bottom-color: var(--border);
+}
+
+[data-theme='light'] .modal-foot,
+.theme-light .modal-foot {
+  border-top-color: var(--border);
+}
+
+/* Light Theme Dropdowns */
+[data-theme='light'] .dropdown,
+.theme-light .dropdown {
+  background: var(--surface);
+  border-color: var(--border);
+}
+
+/* Light Theme Toast Notifications */
+[data-theme='light'] .toast,
+.theme-light .toast {
+  background: var(--text);
+  color: var(--bg);
+}
+
+/* Light Theme Ghost Buttons */
+[data-theme='light'] .btn.ghost,
+.theme-light .btn.ghost {
+  color: var(--text);
+  background: transparent;
+}
+
+[data-theme='light'] .btn.ghost:hover:not(:disabled),
+.theme-light .btn.ghost:hover:not(:disabled) {
+  background: var(--surface-2);
+}
+
+[data-theme='light'] .btn.ghost:active:not(:disabled),
+.theme-light .btn.ghost:active:not(:disabled) {
+  background: var(--border);
+}
+
+/* Light Theme Sidebar and Navigation */
+:root .sidebar,
+[data-theme='light'] .sidebar,
+.theme-light .sidebar {
+  background: var(--sidebar);
+  border-right: 1px solid var(--sidebar-border);
+  color: var(--sidebar-text);
+}
+
+:root .brand,
+[data-theme='light'] .brand,
+.theme-light .brand {
+  color: var(--brand-text);
+}
+
+:root .nav-link,
+[data-theme='light'] .nav-link,
+.theme-light .nav-link {
+  color: var(--sidebar-text);
+}
+
+:root .nav-link:hover,
+[data-theme='light'] .nav-link:hover,
+.theme-light .nav-link:hover {
+  background: var(--sidebar-hover-bg);
+  color: var(--sidebar-hover-text);
+}
+
+:root .nav-link.active,
+[data-theme='light'] .nav-link.active,
+.theme-light .nav-link.active {
+  background: var(--sidebar-active-bg);
+  color: var(--sidebar-active-text);
+  font-weight: 600;
+}
+
+:root .nav-section,
+[data-theme='light'] .nav-section,
+.theme-light .nav-section {
+  color: var(--sidebar-text-muted);
+  font-weight: 700;
+}
+
+

@@ -1,0 +1,154 @@
+/**
+ * Raancom Light Theme Stylesheet (Standalone Distribution)
+ *
+ * Provides complete design tokens, color variables, and component contrast rules
+ * for the Raancom Light Mode.
+ */
+
+:root,
+[data-theme='light'],
+.theme-light {
+  /* Canvas & Surfaces */
+  --bg: #f4f6f8;
+  --surface: #ffffff;
+  --surface-2: #f8fafb;
+  --border: #e2e8ee;
+  --border-focus: #0f766e;
+
+  /* Typography */
+  --text: #16212b;
+  --text-secondary: #334155;
+  --muted: #5d6b79;
+
+  /* Brand / Primary */
+  --primary: #0f766e;
+  --primary-hover: #0b5f59;
+  --primary-active: #042f2e;
+  --primary-soft: #dff4f1;
+  --primary-contrast: #ffffff;
+
+  /* Semantic Statuses */
+  --danger: #b42318;
+  --danger-hover: #991b1b;
+  --danger-soft: #fde8e6;
+
+  --warn: #a15c07;
+  --warn-hover: #854d0e;
+  --warn-soft: #fdf1d8;
+
+  --ok: #166534;
+  --ok-hover: #14532d;
+  --ok-soft: #dcf5e4;
+
+  --info: #1d4ed8;
+  --info-hover: #1e40af;
+  --info-soft: #e3ecfd;
+
+  /* Elevations */
+  --shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.05);
+  --shadow: 0 1px 2px rgba(16, 24, 40, 0.06), 0 1px 3px rgba(16, 24, 40, 0.08);
+  --shadow-md: 0 4px 6px -1px rgba(16, 24, 40, 0.1), 0 2px 4px -2px rgba(16, 24, 40, 0.06);
+  --shadow-lg: 0 12px 32px rgba(16, 24, 40, 0.12);
+  --shadow-modal: 0 20px 50px rgba(16, 24, 40, 0.25);
+
+  /* Geometry & Typography */
+  --radius-sm: 6px;
+  --radius: 10px;
+  --radius-lg: 12px;
+  --radius-full: 9999px;
+  --font: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+
+  /* Sidebar (Light Mode) */
+  --sidebar: #ffffff;
+  --sidebar-surface: #f8fafb;
+  --sidebar-border: #e2e8ee;
+  --sidebar-text: #475569;
+  --sidebar-text-muted: #64748b;
+  --sidebar-hover-bg: #f1f5f9;
+  --sidebar-hover-text: #0f172a;
+  --sidebar-active-bg: #dff4f1;
+  --sidebar-active-text: #0f766e;
+  --brand-text: #16212b;
+
+  /* Form Elements */
+  --input-bg: #ffffff;
+  --input-border: #e2e8ee;
+  --input-text: #16212b;
+  --input-placeholder: #94a3b8;
+
+  /* Overlays */
+  --scrollbar-thumb: #cbd5e1;
+  --scrollbar-thumb-hover: #94a3b8;
+  --backdrop: rgba(8, 15, 22, 0.55);
+}
+
+:root .btn.primary,
+[data-theme='light'] .btn.primary,
+.theme-light .btn.primary {
+  color: #ffffff;
+}
+
+:root .btn.primary:hover:not(:disabled),
+[data-theme='light'] .btn.primary:hover:not(:disabled),
+.theme-light .btn.primary:hover:not(:disabled) {
+  color: #ffffff;
+}
+
+[data-theme='light'] .btn.ghost,
+.theme-light .btn.ghost {
+  color: var(--text);
+  background: transparent;
+}
+
+[data-theme='light'] .btn.ghost:hover:not(:disabled),
+.theme-light .btn.ghost:hover:not(:disabled) {
+  background: var(--surface-2);
+}
+
+[data-theme='light'] .btn.ghost:active:not(:disabled),
+.theme-light .btn.ghost:active:not(:disabled) {
+  background: var(--border);
+}
+
+:root .sidebar,
+[data-theme='light'] .sidebar,
+.theme-light .sidebar {
+  background: var(--sidebar);
+  border-right: 1px solid var(--sidebar-border);
+  color: var(--sidebar-text);
+}
+
+:root .brand,
+[data-theme='light'] .brand,
+.theme-light .brand {
+  color: var(--brand-text);
+}
+
+:root .nav-link,
+[data-theme='light'] .nav-link,
+.theme-light .nav-link {
+  color: var(--sidebar-text);
+}
+
+:root .nav-link:hover,
+[data-theme='light'] .nav-link:hover,
+.theme-light .nav-link:hover {
+  background: var(--sidebar-hover-bg);
+  color: var(--sidebar-hover-text);
+}
+
+:root .nav-link.active,
+[data-theme='light'] .nav-link.active,
+.theme-light .nav-link.active {
+  background: var(--sidebar-active-bg);
+  color: var(--sidebar-active-text);
+  font-weight: 600;
+}
+
+:root .nav-section,
+[data-theme='light'] .nav-section,
+.theme-light .nav-section {
+  color: var(--sidebar-text-muted);
+  font-weight: 700;
+}
+

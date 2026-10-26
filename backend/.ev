@@ -1,0 +1,30 @@
+# Copy this file to ".env" and edit. Never commit ".env".
+
+# MySQL 8. Create the database and user first (see README), then put the password here.
+DATABASE_URL=mysql+pymysql://root:admin123@localhost:3306/raancom
+
+
+# At least 32 random characters. Generate one with:
+#   python -c "import secrets; print(secrets.token_urlsafe(48))"
+SECRET_KEY=
+
+# development | production
+ENVIRONMENT=development
+
+# Where attendance photos and leave documents are kept. Must NOT be inside any web-served folder.
+PRIVATE_STORAGE_DIR=./storage/private
+
+# Browser origins allowed to call the API (comma-separated). Not needed when the app and API share a domain.
+CORS_ORIGINS=http://localhost:5173
+
+# Set to true only when running behind Nginx/another proxy that sets X-Forwarded-For.
+TRUST_PROXY_HEADERS=false
+
+# Turn the interactive API docs (/api/docs) off in production.
+DOCS_ENABLED=true
+
+# Optional tuning
+# ACCESS_TOKEN_MINUTES=480
+# LOGIN_MAX_ATTEMPTS=5
+# LOGIN_LOCKOUT_MINUTES=15
+# MAX_UPLOAD_BYTES=5242880

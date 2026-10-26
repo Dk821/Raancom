@@ -1,0 +1,16 @@
+# /etc/systemd/system/raancom.service
+[Unit]
+Description=Raancom API
+After=network.target mysql.service
+
+[Service]
+User=raancom
+WorkingDirectory=/var/www/raancom/backend
+EnvironmentFile=/var/www/raancom/backend/.env
+ExecStart=/var/www/raancom/backend/venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8000 --workers 2
+Restart=on-failure
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

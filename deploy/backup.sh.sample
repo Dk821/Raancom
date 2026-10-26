@@ -1,0 +1,10 @@
+#!/bin/sh
+# Nightly backup (cron): database + private files. Adjust paths; keep copies off the server.
+set -e
+STAMP=$(date +%F)
+DEST=/var/backups/raancom
+mkdir -p "$DEST"
+# Credentials come from ~/.my.cnf ([client] user=... password=...) so they are not on the command line.
+mysqldump --single-transaction --routines raancom | gzip > "$DEST/db-$STAMP.sql.gz"
+tar -czf "$DEST/files-$STAMP.tar.gz" -C /var/www/raancom/backend storage
+find "$DEST" -type f -mtime +30 -delete
