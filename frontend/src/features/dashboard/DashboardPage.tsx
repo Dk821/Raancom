@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { api } from '../../api/client';
 import { DayRow, LeaveBalance, Summary } from '../../api/types';
 import { useAuth } from '../../auth/AuthContext';
+import UpcomingHolidaysTable from '../../components/UpcomingHolidaysTable';
 import { Badge, Button, Card, Empty, ErrorNote, PageHead, Spinner, Stat, StatusBadge } from '../../components/ui';
 import { useAsync } from '../../hooks/useAsync';
 import { fmtDate, fmtDateTime, fmtDays, fmtMinutes, fmtTime, titleCase } from '../../utils/format';
@@ -16,7 +17,7 @@ interface Dash {
     pending_requests: number;
     pending_corrections: number;
   };
-  upcoming_holidays: { date: string; name: string }[];
+  upcoming_holidays: { id?: number; date: string; name: string; holiday_type?: string }[];
   team?: {
     headcount: number;
     today: Record<'present' | 'half_day' | 'absent' | 'leave' | 'checked_in' | 'not_marked' | 'incomplete' | 'holiday' | 'weekly_off', number>;
@@ -175,13 +176,7 @@ export default function DashboardPage() {
             <MyMonth d={res.data} />
           </div>
           <Balances d={res.data} />
-          {res.data.upcoming_holidays.length > 0 && (
-            <Card title="Upcoming holidays">
-              <ul style={{ margin: 0, paddingLeft: 18 }}>
-                {res.data.upcoming_holidays.map((h) => <li key={h.date}>{fmtDate(h.date)} — {h.name}</li>)}
-              </ul>
-            </Card>
-          )}
+          <UpcomingHolidaysTable holidays={res.data.upcoming_holidays} />
           {res.data.team && <TeamSection d={res.data} />}
         </div>
       )}

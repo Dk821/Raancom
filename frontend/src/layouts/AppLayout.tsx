@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { api } from '../api/client';
 import { Notification, Role } from '../api/types';
@@ -7,39 +7,49 @@ import {
   IconBars,
   IconBell,
   IconBuilding,
+  IconChartBar,
   IconCheckDouble,
+  IconClipboardCheck,
+  IconClock,
   IconDesktop,
+  IconGauge,
+  IconHouse,
+  IconIdCard,
   IconMoon,
+  IconPlane,
+  IconScroll,
   IconSignOut,
+  IconSliders,
   IconSun,
+  IconUsers,
 } from '../components/icons';
 import { Button } from '../components/ui';
 import { fmtDateTime, ROLE_LABEL } from '../utils/format';
 
-interface NavItem { to: string; label: string; icon: string; roles?: Role[] }
+interface NavItem { to: string; label: string; icon: React.ReactNode; roles?: Role[] }
 
 const NAV: { section?: string; items: NavItem[] }[] = [
   {
     items: [
-      { to: '/', label: 'Dashboard', icon: '▦' },
-      { to: '/attendance', label: 'My attendance', icon: '◉' },
-      { to: '/leave', label: 'My leave', icon: '✈' },
+      { to: '/', label: 'Dashboard', icon: <IconGauge size={15} /> },
+      { to: '/attendance', label: 'My attendance', icon: <IconClock size={15} /> },
+      { to: '/leave', label: 'My leave', icon: <IconPlane size={15} /> },
     ],
   },
   {
     section: 'Team',
     items: [
-      { to: '/team/attendance', label: 'Team attendance', icon: '☰', roles: ['OWNER', 'HR', 'REPORTING_MANAGER'] },
-      { to: '/approvals', label: 'Approvals', icon: '✔', roles: ['OWNER', 'HR', 'REPORTING_MANAGER'] },
-      { to: '/reports', label: 'Reports', icon: '▤', roles: ['OWNER', 'HR', 'REPORTING_MANAGER'] },
+      { to: '/team/attendance', label: 'Team attendance', icon: <IconUsers size={15} />, roles: ['OWNER', 'HR', 'REPORTING_MANAGER'] },
+      { to: '/approvals', label: 'Approvals', icon: <IconClipboardCheck size={15} />, roles: ['OWNER', 'HR', 'REPORTING_MANAGER'] },
+      { to: '/reports', label: 'Reports', icon: <IconChartBar size={15} />, roles: ['OWNER', 'HR', 'REPORTING_MANAGER'] },
     ],
   },
   {
     section: 'Administration',
     items: [
-      { to: '/employees', label: 'Employees', icon: '☺', roles: ['OWNER', 'HR'] },
-      { to: '/policies', label: 'Policies & setup', icon: '⚙', roles: ['OWNER', 'HR'] },
-      { to: '/audit', label: 'Audit log', icon: '⌕', roles: ['OWNER'] },
+      { to: '/employees', label: 'Employees', icon: <IconIdCard size={15} />, roles: ['OWNER', 'HR'] },
+      { to: '/policies', label: 'Policies & setup', icon: <IconSliders size={15} />, roles: ['OWNER', 'HR'] },
+      { to: '/audit', label: 'Audit log', icon: <IconScroll size={15} />, roles: ['OWNER'] },
     ],
   },
 ];
@@ -184,7 +194,7 @@ export default function AppLayout() {
               {g.section && <div className="nav-section">{g.section}</div>}
               {items.map((n) => (
                 <NavLink key={n.to} to={n.to} end={n.to === '/'} className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>
-                  <span aria-hidden>{n.icon}</span> {n.label}
+                  <span aria-hidden style={{ display: 'inline-flex', alignItems: 'center', width: 18, justifyContent: 'center' }}>{n.icon}</span> {n.label}
                 </NavLink>
               ))}
             </div>

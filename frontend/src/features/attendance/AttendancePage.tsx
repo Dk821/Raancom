@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { api } from '../../api/client';
 import { AttEvent, Correction, DayRow, Mode, Summary, TodayState } from '../../api/types';
 import CameraCapture from '../../components/CameraCapture';
@@ -10,9 +10,61 @@ import { errMsg, useAsync } from '../../hooks/useAsync';
 import {
   MODE_LABEL, fmtDate, fmtMinutes, fmtTime, fmtWeekday, monthLabel, monthRange, shiftMonth, todayIso,
 } from '../../utils/format';
-import { getPosition } from '../../utils/geo';
+import { PermissionState, checkLocationPermission, getPosition } from '../../utils/geo';
+import { IconBan, IconCircleCheck, IconLocationDot, IconTriangleExclamation } from '../../components/icons';
 import CorrectionForm from './CorrectionForm';
 import EventLine from './EventLine';
+
+/** Shown when location permission is denied — explains how to re-enable it. */
+function LocationDeniedHelp() {
+  const isChrome = navigator.userAgent.includes('Chrome') && !navigator.userAgent.includes('Edg');
+  const isEdge   = navigator.userAgent.includes('Edg');
+  const isFirefox = navigator.userAgent.includes('Firefox');
+  const isSafari  = navigator.userAgent.includes('Safari') && !navigator.userAgent.includes('Chrome');
+
+  let steps: string[];
+  if (isChrome) steps = [
+    'Click the 🔒 lock icon in the browser address bar.',
+    'Find "Location" and change it to "Allow".',
+    'Reload the page.',
+  ];
+  else if (isEdge) steps = [
+    'Click the 🔒 lock icon in the address bar.',
+    'Click "Permissions for this site".',
+    'Set "Location" to "Allow".',
+    'Reload the page.',
+  ];
+  else if (isFirefox) steps = [
+    'Click the 🛡️ shield or 🔒 lock icon in the address bar.',
+    'Click "Connection Secure" → "More Information".',
+    'Go to the "Permissions" tab, find Location, uncheck "Block".',
+    'Reload the page.',
+  ];
+  else if (isSafari) steps = [
+    'Go to Safari → Settings → Websites → Location.',
+    'Find this site and change it to "Allow".',
+    'Reload the page.',
+  ];
+  else steps = [
+    'Open your browser settings.',
+    'Go to Privacy & Security → Site permissions → Location.',
+    'Allow this site to access your location.',
+    'Reload the page.',
+  ];
+
+  return (
+    <div className="loc-denied-box">
+      <div className="loc-denied-title">📍 Location access is blocked</div>
+      <p className="small" style={{ marginBottom: 8 }}>
+        <strong>Office</strong> and <strong>Outside Work</strong> attendance require your location.
+        Your browser is currently blocking it. To fix this:
+      </p>
+      <ol className="small loc-steps">
+        {steps.map((s, i) => <li key={i}>{s}</li>)}
+      </ol>
+    </div>
+  );
+}
 
 function PunchPanel({ today, onDone }: { today: TodayState; onDone: () => void }) {
   const toast = useToast();
@@ -23,16 +75,65 @@ function PunchPanel({ today, onDone }: { today: TodayState; onDone: () => void }
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [locPerm, setLocPerm] = useState<PermissionState>('prompt');
   const needsRemark = mode !== 'OFFICE';
+  const needsGps = mode !== 'WFH';
+
+  // Check permission state on mount and whenever mode changes
+  useEffect(() => {
+    checkLocationPermission().then(setLocPerm);
+  }, [mode]);
+
+  // Re-check permission every 2 s while in prompt state (user may have just allowed in another tab)
+  useEffect(() => {
+    if (locPerm !== 'prompt') return;
+    const t = setInterval(() => checkLocationPermission().then(setLocPerm), 2000);
+    return () => clearInterval(t);
+  }, [locPerm]);
+
+  const requestLocation = () => {
+    // Trigger the browser permission prompt by attempting to get position
+    checkLocationPermission().then(async (state) => {
+      if (state === 'denied') { setLocPerm('denied'); return; }
+      setNote('Requesting location access…');
+      const { position, problem } = await getPosition(5000);
+      if (position) {
+        setLocPerm('granted');
+        setNote(null);
+      } else {
+        setLocPerm('denied');
+        setNote(null);
+      }
+      if (problem) setNote(problem);
+    });
+  };
 
   const submit = async () => {
     if (!photo) return;
     setBusy(true);
     setError(null);
-    setNote('Getting your location…');
+
+    // WFH: skip GPS entirely — location not applicable
+    // OFFICE / OUTSIDE_WORK: GPS required
+    let position: { latitude: number; longitude: number; accuracy: number } | null = null;
+    if (needsGps) {
+      setNote('Getting your location…');
+      const result = await getPosition();
+      position = result.position;
+      // If GPS failed even though we thought it was granted, re-check
+      if (!position) {
+        const perm = await checkLocationPermission();
+        setLocPerm(perm);
+        setNote(null);
+        setBusy(false);
+        if (perm === 'denied') return; // LocationDeniedHelp will show
+        setError(result.problem ?? 'Could not get your location. Please try again.');
+        return;
+      }
+      setNote(null);
+    }
+
     try {
-      const { position, problem } = await getPosition();
-      setNote(problem);
       const fd = new FormData();
       fd.set('event_type', kind);
       fd.set('mode', mode);
@@ -56,8 +157,12 @@ function PunchPanel({ today, onDone }: { today: TodayState; onDone: () => void }
       setError(errMsg(e));
     } finally {
       setBusy(false);
+      setNote(null);
     }
   };
+
+  const locationBlocked = needsGps && locPerm === 'denied';
+  const locationUnknown = needsGps && locPerm === 'unavailable';
 
   return (
     <div className="stack">
@@ -75,6 +180,43 @@ function PunchPanel({ today, onDone }: { today: TodayState; onDone: () => void }
           ))}
         </div>
       </div>
+
+      {/* Location permission status */}
+      {mode !== 'WFH' && (
+        <div className="loc-status-bar">
+          {locPerm === 'granted' && (
+            <span className="loc-status ok">
+              <IconCircleCheck size={14} style={{ marginRight: 5 }} />
+              Location access granted
+            </span>
+          )}
+          {locPerm === 'prompt' && (
+            <div className="row" style={{ gap: 8, alignItems: 'center' }}>
+              <span className="loc-status warn">
+                <IconLocationDot size={13} style={{ marginRight: 5 }} />
+                Location access needed
+              </span>
+              <Button small onClick={requestLocation}>Allow location</Button>
+            </div>
+          )}
+          {locPerm === 'denied' && (
+            <span className="loc-status error">
+              <IconBan size={13} style={{ marginRight: 5 }} />
+              Location blocked by browser
+            </span>
+          )}
+          {locPerm === 'unavailable' && (
+            <span className="loc-status warn">
+              <IconTriangleExclamation size={13} style={{ marginRight: 5 }} />
+              Location not available on this device
+            </span>
+          )}
+        </div>
+      )}
+
+      {/* Full how-to-fix instructions when denied */}
+      {locationBlocked && <LocationDeniedHelp />}
+
       {mode === 'OFFICE' && today.offices.length === 0 && (
         <Alert tone="warn">No office location is set up yet. Ask the Owner to add one before using Office attendance.</Alert>
       )}
@@ -96,9 +238,14 @@ function PunchPanel({ today, onDone }: { today: TodayState; onDone: () => void }
       </p>
       <div>
         <Button variant="primary" loading={busy} onClick={submit}
-          disabled={!photo || (needsRemark && remark.trim().length < 3)}>
+          disabled={!photo || (needsRemark && remark.trim().length < 3) || locationBlocked || locationUnknown}>
           {kind === 'CHECK_IN' ? 'Check in now' : 'Check out now'}
         </Button>
+        {locationBlocked && (
+          <span className="small muted" style={{ marginLeft: 10 }}>
+            Enable location to continue
+          </span>
+        )}
       </div>
     </div>
   );

@@ -13,6 +13,7 @@ deploy/     Sample Nginx, systemd and backup files for a Linux server
 Roles: Owner, HR, Reporting Manager, Employee (record-level scoping: a manager only ever sees their own team).
 
 - **Attendance** – check-in and check-out with live photo and GPS (Office / Outside Work / WFH). Time is always the server's. Office distance is checked on the server against the nearest active office. Outside the radius, or poor GPS, the record is saved and **flagged for HR review** (Owner can switch this to *block*).
+- **Reverse Geocoding** – when GPS coordinates are available the employee's readable street address (Street · Area · City · District · State · PIN · Country) is displayed alongside every check-in and check-out record, powered by the Google Maps Geocoding API (optional; falls back to raw coordinates if the API key is not configured).
 - **Corrections** – requested by the employee with a reason, reviewed by manager/HR; the original events are never changed. HR/Owner can correct directly (audited).
 - **Leave** – types, balances kept in an append-only ledger, apply / edit / withdraw, manager approval (optional HR second level, Owner-toggled), half days, cancellation of approved leave, year rollover.
 - **Policies** – company rules, leave types, shifts, holidays, multiple offices.
@@ -86,6 +87,22 @@ npm run dev
 Open http://localhost:5173. Vite proxies `/api` to the backend on port 8000.
 
 The **camera needs a secure origin**: `localhost` works for development; on a real server (and on phones) the site must be served over **HTTPS**.
+
+### Google Maps Geocoding (optional)
+
+To display a human-readable street address next to each attendance check-in/check-out:
+
+1. Go to [Google Cloud Console](https://console.cloud.google.com/) → APIs & Services → Enable **Geocoding API**.
+2. Create an API key and restrict it to the **Geocoding API** and your domain.
+3. Open `frontend/.env` and replace the placeholder:
+
+```env
+VITE_GOOGLE_MAPS_API_KEY=your_actual_api_key_here
+```
+
+4. Restart `npm run dev` (Vite reads `.env` at startup).
+
+If no key is set (or the placeholder is left), the feature degrades gracefully: coordinates are shown as `lat, lng` instead of a full address. No API calls are made.
 
 ### Light Theme & Styling System
 

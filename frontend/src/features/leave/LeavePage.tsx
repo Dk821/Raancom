@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { api } from '../../api/client';
 import { Holiday, LeaveBalance, LeaveRequest, Page } from '../../api/types';
 import { useAuth } from '../../auth/AuthContext';
+import UpcomingHolidaysTable from '../../components/UpcomingHolidaysTable';
 import { Button, Card, Empty, ErrorNote, PageHead, Pager, Spinner, StatusBadge, Tabs } from '../../components/ui';
 import { useAsync } from '../../hooks/useAsync';
 import { fmtDate, fmtDays, todayIso } from '../../utils/format';
@@ -11,7 +12,7 @@ import RequestDetail from './RequestDetail';
 
 function Balances() {
   const res = useAsync(() => api.get<{ year: number; balances: LeaveBalance[] }>('/leave/balances/me'), []);
-  const hol = useAsync(() => api.get<Holiday[]>('/policies/holidays', { year: Number(todayIso().slice(0, 4)) }), []);
+  const hol = useAsync(() => api.get<Holiday[]>('/policies/holidays'), []);
   if (res.loading && !res.data) return <Spinner />;
   if (res.error || !res.data) return <ErrorNote message={res.error ?? 'Unavailable'} onRetry={res.reload} />;
   const upcoming = (hol.data ?? []).filter((h) => h.date >= todayIso()).slice(0, 6);
@@ -34,13 +35,7 @@ function Balances() {
           Also available without a balance: {res.data.balances.filter((b) => !b.tracked).map((b) => b.name).join(', ')}.
         </p>
       )}
-      {upcoming.length > 0 && (
-        <Card title="Upcoming holidays">
-          <ul style={{ margin: 0, paddingLeft: 18 }}>
-            {upcoming.map((h) => <li key={h.id}>{fmtDate(h.date)} — {h.name}</li>)}
-          </ul>
-        </Card>
-      )}
+      <UpcomingHolidaysTable holidays={upcoming} />
     </div>
   );
 }

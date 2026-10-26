@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { api } from '../../api/client';
 import { Holiday, LeaveType, Office, Shift } from '../../api/types';
 import { useAuth } from '../../auth/AuthContext';
@@ -7,6 +7,8 @@ import {
 } from '../../components/ui';
 import { errMsg, useAsync } from '../../hooks/useAsync';
 import { fmtDate, todayIso } from '../../utils/format';
+import { AddressInfo, PermissionState, checkLocationPermission, geocodeAddress } from '../../utils/geo';
+import { IconBan, IconCircleCheck, IconLocationDot, IconTriangleExclamation } from '../../components/icons';
 
 type Tab = 'company' | 'leave' | 'shifts' | 'holidays' | 'offices';
 const DAYS = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
@@ -423,17 +425,61 @@ function OfficeModal({ office, onClose, onDone }: { office: Office | null; onClo
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [locating, setLocating] = useState(false);
+  const [locationAddress, setLocationAddress] = useState<AddressInfo | null>(null);
+  const [locPerm, setLocPerm] = useState<PermissionState>('prompt');
 
-  const useMine = () => {
+  // Check permission on mount
+  useEffect(() => { checkLocationPermission().then(setLocPerm); }, []);
+
+  // Poll every 2 s while in prompt state so status updates after user allows
+  useEffect(() => {
+    if (locPerm !== 'prompt') return;
+    const t = setInterval(() => checkLocationPermission().then(setLocPerm), 2000);
+    return () => clearInterval(t);
+  }, [locPerm]);
+
+  const useMine = async () => {
     if (!navigator.geolocation) return setError('This browser cannot provide your location.');
+    const perm = await checkLocationPermission();
+    if (perm === 'denied') { setLocPerm('denied'); return; }
     setLocating(true);
     setError(null);
+    setLocationAddress(null);
     navigator.geolocation.getCurrentPosition(
-      (p) => { setF((x) => ({ ...x, latitude: p.coords.latitude.toFixed(6), longitude: p.coords.longitude.toFixed(6) })); setLocating(false); },
-      () => { setError('Could not get your location. Allow location access, or type the coordinates.'); setLocating(false); },
+      (p) => {
+        const lat = p.coords.latitude;
+        const lng = p.coords.longitude;
+        setF((x) => ({ ...x, latitude: lat.toFixed(6), longitude: lng.toFixed(6) }));
+        setLocating(false);
+        setLocPerm('granted');
+        // Reverse-geocode to show a human-readable address preview
+        geocodeAddress(lat, lng).then((addr) => {
+          if (addr) setLocationAddress(addr);
+        });
+      },
+      (err) => {
+        setLocating(false);
+        if (err.code === err.PERMISSION_DENIED) {
+          setLocPerm('denied');
+        } else {
+          setError('Could not get your location. Try again or type the coordinates manually.');
+        }
+      },
       { enableHighAccuracy: true, timeout: 15000 },
     );
   };
+
+  // Browser-specific instructions when denied
+  const isChrome  = navigator.userAgent.includes('Chrome') && !navigator.userAgent.includes('Edg');
+  const isEdge    = navigator.userAgent.includes('Edg');
+  const isFirefox = navigator.userAgent.includes('Firefox');
+  const isSafari  = navigator.userAgent.includes('Safari') && !navigator.userAgent.includes('Chrome');
+  let deniedSteps: string[];
+  if (isChrome)       deniedSteps = ['Click the 🔒 lock icon in the address bar.', 'Set "Location" to "Allow".', 'Reload the page.'];
+  else if (isEdge)    deniedSteps = ['Click the 🔒 lock icon → "Permissions for this site".', 'Set "Location" to "Allow".', 'Reload the page.'];
+  else if (isFirefox) deniedSteps = ['Click the 🛡️ shield → "Connection Secure" → "More Information".', 'Go to "Permissions" tab → uncheck Block for Location.', 'Reload the page.'];
+  else if (isSafari)  deniedSteps = ['Go to Safari → Settings → Websites → Location.', 'Set this site to "Allow".', 'Reload the page.'];
+  else                deniedSteps = ['Open browser Settings → Privacy → Site permissions → Location.', 'Allow this site.', 'Reload the page.'];
   const valid = f.name.trim() && f.latitude !== '' && f.longitude !== '' && !Number.isNaN(Number(f.latitude)) && !Number.isNaN(Number(f.longitude));
   const save = async () => {
     setBusy(true);
@@ -460,7 +506,75 @@ function OfficeModal({ office, onClose, onDone }: { office: Office | null; onClo
           <Field label="Latitude">{(id) => <input id={id} type="text" inputMode="decimal" value={f.latitude} onChange={(e) => setF({ ...f, latitude: e.target.value })} />}</Field>
           <Field label="Longitude">{(id) => <input id={id} type="text" inputMode="decimal" value={f.longitude} onChange={(e) => setF({ ...f, longitude: e.target.value })} />}</Field>
         </div>
-        <div><Button loading={locating} onClick={useMine}>Use my current location</Button> <span className="muted small">Stand inside the office when you do this.</span></div>
+        <div>
+          {/* Location permission status */}
+          <div className="loc-status-bar" style={{ marginBottom: 8 }}>
+            {locPerm === 'granted' && (
+              <span className="loc-status ok">
+                <IconCircleCheck size={14} style={{ marginRight: 5 }} />
+                Location access granted
+              </span>
+            )}
+            {locPerm === 'prompt' && (
+              <div className="row" style={{ gap: 8, alignItems: 'center' }}>
+                <span className="loc-status warn">
+                  <IconLocationDot size={13} style={{ marginRight: 5 }} />
+                  Location permission needed
+                </span>
+              </div>
+            )}
+            {locPerm === 'denied' && (
+              <span className="loc-status error">
+                <IconBan size={13} style={{ marginRight: 5 }} />
+                Location blocked — see instructions below
+              </span>
+            )}
+            {locPerm === 'unavailable' && (
+              <span className="loc-status warn">
+                <IconTriangleExclamation size={13} style={{ marginRight: 5 }} />
+                Location not available on this device
+              </span>
+            )}
+          </div>
+
+          <Button loading={locating} onClick={useMine} disabled={locPerm === 'denied' || locPerm === 'unavailable'}>
+            Use my current location
+          </Button>
+          <span className="muted small" style={{ marginLeft: 8 }}>Stand inside the office when you do this.</span>
+        </div>
+
+        {/* Denied help box */}
+        {locPerm === 'denied' && (
+          <div className="loc-denied-box">
+            <div className="loc-denied-title">📍 Location access is blocked</div>
+            <p className="small" style={{ marginBottom: 8 }}>
+              To use <strong>"Use my current location"</strong> you must allow location access in your browser:
+            </p>
+            <ol className="small loc-steps">
+              {deniedSteps.map((s, i) => <li key={i}>{s}</li>)}
+            </ol>
+          </div>
+        )}
+
+        {locationAddress && (
+          <div className="address-block">
+            <div className="small" style={{ fontWeight: 600, marginBottom: 4, color: 'var(--primary)' }}>📍 Detected Location</div>
+            <div className="address-grid">
+              {locationAddress.street     && <><span className="address-label">Street</span>  <span className="address-value">{locationAddress.street}</span></>}
+              {locationAddress.area       && <><span className="address-label">Area</span>    <span className="address-value">{locationAddress.area}</span></>}
+              {locationAddress.city       && <><span className="address-label">City</span>    <span className="address-value">{locationAddress.city}</span></>}
+              {locationAddress.district   && <><span className="address-label">District</span><span className="address-value">{locationAddress.district}</span></>}
+              {locationAddress.state      && <><span className="address-label">State</span>   <span className="address-value">{locationAddress.state}</span></>}
+              {locationAddress.postalCode && <><span className="address-label">PIN</span>     <span className="address-value">{locationAddress.postalCode}</span></>}
+              {locationAddress.country    && <><span className="address-label">Country</span> <span className="address-value">{locationAddress.country}</span></>}
+            </div>
+            {locationAddress.formattedAddress && (
+              <div className="small muted" style={{ marginTop: 5, borderTop: '1px solid var(--border)', paddingTop: 4 }}>
+                {locationAddress.formattedAddress}
+              </div>
+            )}
+          </div>
+        )}
         <Field label="Allowed radius (metres)" hint="10–5000. Check-ins farther than this are flagged or blocked.">
           {(id) => <input id={id} type="number" min={10} max={5000} value={f.radius_m} onChange={(e) => setF({ ...f, radius_m: e.target.value })} />}
         </Field>

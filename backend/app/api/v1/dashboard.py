@@ -42,8 +42,8 @@ def dashboard(p: Principal = Depends(get_active_principal), db: Session = Depend
             AttendanceCorrection.status == CorrectionStatus.PENDING.value)) or 0,
     }
     out["upcoming_holidays"] = [
-        {"date": h.date, "name": h.name}
-        for h in db.scalars(select(Holiday).where(Holiday.date >= today).order_by(Holiday.date).limit(5))
+        {"id": h.id, "date": str(h.date), "name": h.name, "holiday_type": h.holiday_type}
+        for h in db.scalars(select(Holiday).where(Holiday.date >= today).order_by(Holiday.date).limit(6))
     ]
 
     if p.role == Role.EMPLOYEE.value:
